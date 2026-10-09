@@ -1,22 +1,22 @@
 package io.github.protocol4
 
-import net.fabricmc.api.ModInitializer
+import io.github.protocol4.commands.Commands
+import io.github.protocol4.config.ConfigManager
+import net.fabricmc.api.ClientModInitializer
+import io.github.protocol4.features.inventory.protectitem.ProtectedItems
+
 import net.minecraft.resources.Identifier
 import org.slf4j.LoggerFactory
 
-object Protocol4Addons : ModInitializer {
-	const val MOD_ID: String = "protocol4-addons"
+object Protocol4Addons : ClientModInitializer {
+	const val MOD_ID = "protocol4-addons"
+	val LOGGER = LoggerFactory.getLogger(MOD_ID)
 
-	private val LOGGER = LoggerFactory.getLogger(MOD_ID)
-
-	override fun onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
-		LOGGER.info("Hello Fabric world!")
+	override fun onInitializeClient() {
+		ProtectedItems.load()
+		ConfigManager.load()
+		Commands.register()
 	}
 
-	fun id(path: String): Identifier
-		= Identifier.fromNamespaceAndPath(MOD_ID, path)
+	fun id(path: String): Identifier = Identifier.fromNamespaceAndPath(MOD_ID, path)
 }
