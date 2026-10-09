@@ -1,9 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+	kotlin("jvm")
 	id("net.fabricmc.fabric-loom")
-	id("org.jetbrains.kotlin.jvm") version "2.4.20"
-	id("com.gradleup.shadow") version "9.6.0"
+	id("com.gradleup.shadow")
+	id("versioned-catalogues")
 }
 
 repositories {
@@ -13,10 +14,39 @@ repositories {
 			includeGroupAndSubgroups("org.notenoughupdates")
 		}
 	}
+	mavenLocal {
+		content {
+			includeGroupAndSubgroups("org.notenoughupdates")
+		}
+	}
 }
 
-val shadowImpl = configurations.create("shadowImpl")
-configurations.implementation.get().extendsFrom(shadowImpl)
+tasks.withType<JavaCompile>().configureEach {
+	options.encoding = "UTF-8"
+	options.release.set(25)
+}
+
+kotlin {
+	jvmToolchain(25)
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_25
+	}
+}
+
+java {
+	toolchain.languageVersion = JavaLanguageVersion.of(25)
+	withSourcesJar()
+}
+
+val mcVersion = stonecutter.current.version.replace(".", "")
+
+loom {
+	runConfigs["client"].apply {
+		generateRunConfig = true
+		runDirectory = project.file("../../run")
+		jvmArguments.addAll("-Dfabric.modsFolder=${mcVersion}Mods")
+	}
+}
 
 fabricApi {
 	configureDataGeneration {
@@ -25,54 +55,49 @@ fabricApi {
 	}
 }
 
-dependencies {
-	minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
-	implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
-	implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
-	implementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
+val shadowImpl = configurations.create("shadowImpl")
+configurations.implementation.get().extendsFrom(shadowImpl)
 
-	shadowImpl("org.notenoughupdates.moulconfig:modern-${providers.gradleProperty("minecraft_version").get()}:${providers.gradleProperty("moulconfig_version").get()}") {
-		exclude("org.jetbrains.kotlin")
-		exclude("org.jetbrains.kotlinx")
+dependencies {
+	"minecraft"(versionedCatalog["minecraft"])
+	implementation(versionedCatalog["fabric.loader"])
+	implementation(versionedCatalog["fabric.api"])
+	implementation(versionedCatalog["fabric.language.kotlin"])
+
+	val moulConfig = versionedCatalog["moulconfig"].get()
+	shadowImpl("${moulConfig.module}:${moulConfig.versionConstraint.requiredVersion}") {
+		exclude(group = "org.jetbrains.kotlin")
+		exclude(group = "org.jetbrains.kotlinx")
 	}
 }
 
 tasks.processResources {
-	val version = version
-	inputs.property("version", version)
+	val replacements = mapOf(
+		"version" to version,
+		"minecraft_range" to versionedCatalog.versions["minecraft.range"].requiredVersion,
+	)
+	inputs.properties(replacements)
 
 	filesMatching("fabric.mod.json") {
-		expand("version" to version)
+		expand(replacements)
 	}
 }
 
-tasks.withType<JavaCompile>().configureEach {
-	options.release = 25
+val archiveName = "protocol4-addons"
+
+base {
+	archivesName.set("$archiveName-${archivesName.get()}")
 }
 
-kotlin {
-	compilerOptions {
-		jvmTarget = JvmTarget.JVM_25
-	}
-}
-
-java {
-	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
-}
-
-tasks.jar {
-	val projectName = project.name
-	inputs.property("projectName", projectName)
-
-	from("LICENSE") {
-		rename { "${it}_$projectName" }
-	}
-}
+val licenseFile = rootProject.file("LICENSE")
+val licenseSuffix = rootProject.name
 
 tasks.jar {
 	archiveClassifier.set("nodeps")
+
+	from(licenseFile) {
+		rename { "${it}_$licenseSuffix" }
+	}
 }
 
 tasks.shadowJar {
@@ -87,4 +112,16 @@ tasks.shadowJar {
 
 tasks.assemble {
 	dependsOn(tasks.shadowJar)
+}
+
+//smart stuff
+val builtJar = layout.buildDirectory.file("libs/$archiveName-${project.name}-$version.jar")
+val collectedJar = rootProject.layout.projectDirectory.file("build/libs/$archiveName-$version-${project.name}.jar")
+
+tasks.build {
+	doLast {
+		val target = collectedJar.asFile
+		target.parentFile.mkdirs()
+		builtJar.get().asFile.copyTo(target, overwrite = true)
+	}
 }

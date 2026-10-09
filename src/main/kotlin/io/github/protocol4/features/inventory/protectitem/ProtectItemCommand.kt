@@ -10,16 +10,10 @@ object ProtectItemCommand {
 	fun build(): LiteralArgumentBuilder<FabricClientCommandSource> =
 		LiteralArgumentBuilder.literal<FabricClientCommandSource>("protectitem").executes { context ->
 			val stack = Minecraft.getInstance().player?.mainHandItem
-			val uuid = stack?.let { ProtectedItems.uuidOf(it) }
-			if (stack == null || uuid == null) {
-				val error = Component.literal("Hold an item with a SkyBlock UUID.").withStyle(ChatFormatting.RED)
-				context.source.sendFeedback(error)
+			if (stack == null) {
+				context.source.sendFeedback(Component.literal("Hold an item with a SkyBlock UUID.").withStyle(ChatFormatting.RED))
 				return@executes 0
 			}
-			val protectedNow = ProtectedItems.toggle(uuid)
-			val prefix = if (protectedNow) "Protected " else "Unprotected "
-			val color = if (protectedNow) ChatFormatting.GREEN else ChatFormatting.YELLOW
-			context.source.sendFeedback(Component.literal(prefix).withStyle(color).append(stack.hoverName))
-			1
+			if (ProtectedItems.toggleWithFeedback(stack, context.source::sendFeedback)) 1 else 0
 		}
 }

@@ -34,8 +34,8 @@ object ProtectionGuard {
 		lastWarning = now
 		val minecraft = Minecraft.getInstance()
 		if (config.warningMessage) {
-			val message = Component.literal("Protected your item: ").withStyle(config.warningColor.formatting)
-			minecraft.player?.sendSystemMessage(message.append(stack.hoverName))
+			val message = Component.literal("Couldnt drop ").append(stack.hoverName).append(" because it is protected.")
+			minecraft.player?.sendSystemMessage(message.withStyle(config.warningColor.formatting))
 		}
 		if (config.warningSound) {
 			val sound = SoundEvent.createVariableRangeEvent(Identifier.parse(config.soundType.id))

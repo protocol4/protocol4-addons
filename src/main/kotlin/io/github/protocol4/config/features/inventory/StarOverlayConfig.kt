@@ -32,7 +32,7 @@ class StarOverlayConfig {
 	var offsetY = 0
 
 	@Expose
-	@ConfigOption(name = "Show In Containers", desc = "Also draws the star on protected items inside chests and other menus.")
+	@ConfigOption(name = "Show On Hotbar", desc = "Also draws the star on protected items in your hotbar while no menu is open.")
 	@ConfigEditorBoolean
-	var showInContainers = true
+	var showOnHotbar = true
 }

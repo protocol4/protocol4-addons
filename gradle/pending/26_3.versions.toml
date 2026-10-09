@@ -1,0 +1,13 @@
+# MOULCONFIG PLEASE DO IT QUICK SO I CAN TEST THIS MULTIVERSION SHENANIGANS I SWEAR ITS CRASHING ME OUT
+[versions]
+minecraft-range = "26.3.x"
+minecraft = "26.3"
+
+fabric-api = "0.161.0+26.3"
+moulconfig = "4.7.2"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+
+fabric-api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric-api" }
+moulconfig = { module = "org.notenoughupdates.moulconfig:modern-26.3", version.ref = "moulconfig" }

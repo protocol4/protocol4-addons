@@ -3,7 +3,9 @@ package io.github.protocol4.features.inventory.protectitem
 import com.google.gson.Gson
 import io.github.protocol4.Protocol4Addons
 import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.ChatFormatting
 import net.minecraft.core.component.DataComponents
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import java.nio.file.Files
 
@@ -45,5 +47,18 @@ object ProtectedItems {
 		if (!added) uuids.remove(uuid)
 		save()
 		return added
+	}
+
+	fun toggleWithFeedback(stack: ItemStack, send: (Component) -> Unit): Boolean {
+		val uuid = uuidOf(stack)
+		if (uuid == null) {
+			send(Component.literal("That item has no SkyBlock UUID.").withStyle(ChatFormatting.RED))
+			return false
+		}
+		val protectedNow = toggle(uuid)
+		val prefix = if (protectedNow) "Protected " else "Unprotected "
+		val color = if (protectedNow) ChatFormatting.GREEN else ChatFormatting.YELLOW
+		send(Component.literal(prefix).withStyle(color).append(stack.hoverName))
+		return true
 	}
 }

@@ -1,40 +1,51 @@
+####I MADE THIS FROM CHATGPT
 # gradle
 
 .gradle/
 build/
-out/
+**/build/
+.kotlin/
 classes/
+out/
+
+# fabric / loom
+run/
+runs/
+versions/*/run/
+
+# logs and crashes
+*.log
+logs/
+crash-reports/
+hs_err_pid*
+replay_pid*
+*.hprof
+*.jfr
 
 # eclipse
-
 *.launch
+.settings/
+bin/
+.classpath
+.project
 
 # idea
-
 .idea/
 *.iml
 *.ipr
 *.iws
 
 # vscode
-
-.settings/
 .vscode/
-bin/
-.classpath
-.project
 
-# macos
+# os
+.DS_Store
+Thumbs.db
+desktop.ini
 
-*.DS_Store
-
-# fabric
-
-run/
-
-# java
-
-hs_err_*.log
-replay_*.log
-*.hprof
-*.jfr
+# misc
+*.bak
+*.tmp
+*.swp
+.env
+local.properties
