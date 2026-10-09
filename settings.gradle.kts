@@ -13,5 +13,4 @@ pluginManagement {
 	}
 }
 
-// Should match your modid
 rootProject.name = "protocol4-addons"
